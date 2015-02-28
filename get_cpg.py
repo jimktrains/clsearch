@@ -1,6 +1,6 @@
 import download
 from nilsimsa import Nilsimsa
-import hashlib 
+import hashlib
 import sqlite3
 import datetime
 from textblob import TextBlob
@@ -8,11 +8,14 @@ import gzip
 import cache
 import string
 import time
+from nltk.corpus import stopwords
 
-# CREATE TABLE tf (id INTEGER, word TEXT, cnt INTEGER);
+# CREATE TABLE tf (id INTEGER, word TEXT, cnt INTEGER, tf REAL, tfidf REAL);
 # CREATE TABLE ad (id INTEGER, url TEXT, title TEXT, posted INTEGER, lshash TEXT);
 # CREATE INDEX adididx ON ad (id);
 conn = sqlite3.connect('ads.db')
+
+stopwords = stopwords.words('english')
 
 def get_ads(base_url):
     c = conn.cursor()
@@ -25,7 +28,7 @@ def get_ads(base_url):
         a_tag = p.find('a', class_='hdrlnk')
         ad_href = a_tag['href']
         ad_title = a_tag.text
-        
+
         dt = p.find('time')['datetime']
         dt = datetime.datetime.strptime(dt, "%Y-%m-%d %H:%M")
         dt = int(dt.strftime("%s"))
@@ -40,7 +43,7 @@ def get_ads(base_url):
 
             time.sleep(0.5)
             ad = download.get(url)
-            
+
             print url
             ad_text = ad.find(id='postingbody')
             if ad_text is None:
@@ -75,9 +78,10 @@ def get_ads(base_url):
                       " VALUES (?,?,?,?,?)", row)
 
             for word in seen:
-                row = (pid, word, seen[word])
-                c.execute("INSERT INTO tf (id, word, cnt) " + 
-                          "VALUES (?,?,?)", row)
+                if word not in stopwords:
+                  row = (pid, word, seen[word])
+                  c.execute("INSERT INTO tf (id, word, cnt) " +
+                            "VALUES (?,?,?)", row)
             conn.commit()
 
 def generate_word_counts(ad_text):
