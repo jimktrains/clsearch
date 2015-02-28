@@ -1,7 +1,4 @@
-from nilsimsa import Nilsimsa
-import datetime
 import sqlite3
-import argparse
 import math
 
 # CREATE TABLE tf (id INTEGER, word TEXT, cnt INTEGER, tf REAL, tfidf REAL);
@@ -12,12 +9,12 @@ conn.create_function('ln', 1, math.log);
 
 c = conn.cursor()
 
-print "Creating wcnt"
+print("Creating wcnt")
 c.execute("DROP TABLE IF EXISTS wcnt;")
 c.execute("CREATE TABLE wcnt AS SELECT id, sum(cnt) AS wcnt  FROM tf GROUP BY id;")
 c.execute("CREATE index wcnt_id_idx ON wcnt (id);")
 
-print "Creating idf"
+print("Creating idf")
 c.execute("DROP TABLE IF EXISTS idf;")
 c.execute("""CREATE TABLE idf AS
     SELECT ln(  (SELECT CAST(COUNT(*) AS real) FROM wcnt)
@@ -27,11 +24,11 @@ c.execute("""CREATE TABLE idf AS
     GROUP BY word;""")
 c.execute("CREATE index idf_word ON idf(word);")
 
-print "Calculating tf"
+print("Calculating tf")
 c.execute("""UPDATE tf SET
     tf =   CAST(cnt AS REAL)
          / (SELECT CAST(wcnt AS REAL) FROM wcnt AS foo WHERE foo.id = tf.id);""")
 
-print "Calculating tfidf"
+print("Calculating tfidf")
 c.execute("UPDATE tf SET tfidf = tf * (SELECT idf FROM idf WHERe idf.word = tf.word);")
 

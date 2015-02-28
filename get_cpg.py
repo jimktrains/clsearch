@@ -13,6 +13,8 @@ from nltk.corpus import stopwords
 # CREATE TABLE tf (id INTEGER, word TEXT, cnt INTEGER, tf REAL, tfidf REAL);
 # CREATE TABLE ad (id INTEGER, url TEXT, title TEXT, posted INTEGER, lshash TEXT);
 # CREATE INDEX adididx ON ad (id);
+# CREATE INDEX tf_id_idx ON tf(id);
+# CREATE INDEX tf_word_idx ON tf(word);
 conn = sqlite3.connect('ads.db')
 
 stopwords = stopwords.words('english')
